@@ -164,7 +164,6 @@ def process_inbox(inbox: str, after_date: date, run_log: run_logger_module.RunLo
         if result.confidence == "low":
             logger.info(f"Low confidence for '{subject}' — skipping label")
             run_log.log_email(inbox, eid, subject, sender, "low_confidence_unmatched")
-            dedup.mark_processed(inbox, eid)
             continue
 
         if result.category in label_ids:
