@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from dataclasses import dataclass
 
 import anthropic
@@ -65,6 +66,8 @@ def classify_email(subject: str, sender: str, body: str) -> ClassificationResult
             messages=[{"role": "user", "content": prompt}],
         )
         raw = response.content[0].text.strip()
+        raw = re.sub(r'^```(?:json)?\s*\n?', '', raw)
+        raw = re.sub(r'\n?```\s*$', '', raw)
         data = json.loads(raw)
         return ClassificationResult(
             category=data.get("category", "Unmatched"),

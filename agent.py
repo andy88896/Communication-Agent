@@ -11,11 +11,15 @@ from src.draft_generator import generate_draft
 from src.gmail_client import AuthError, GmailClient
 from src import notion_writer
 
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')  # type: ignore[union-attr]
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')  # type: ignore[union-attr]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
     handlers=[
-        logging.FileHandler("agent.log"),
+        logging.FileHandler("agent.log", encoding='utf-8'),
         logging.StreamHandler(sys.stdout),
     ],
 )
