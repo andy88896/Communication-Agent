@@ -137,7 +137,6 @@ def process_inbox(inbox: str, after_date: date, run_log: run_logger_module.RunLo
         return
 
     logger.info(f"Fetched {len(emails)} emails from {inbox}")
-    call_count = 0
 
     for email in emails:
         eid = email["id"]
@@ -154,12 +153,8 @@ def process_inbox(inbox: str, after_date: date, run_log: run_logger_module.RunLo
             dedup.mark_processed(inbox, eid)
             continue
 
-        # Rate limit: pause every 20 Claude calls
-        if call_count > 0 and call_count % 20 == 0:
-            time.sleep(0.5)
-
+        time.sleep(0.5)
         result = classify_email(subject, sender, email["body"])
-        call_count += 1
 
         if result.confidence == "low":
             logger.info(f"Low confidence for '{subject}' — skipping label")
@@ -175,10 +170,8 @@ def process_inbox(inbox: str, after_date: date, run_log: run_logger_module.RunLo
 
         if result.category == "Job Applications" and result.reply_required:
             try:
-                if call_count > 0 and call_count % 20 == 0:
-                    time.sleep(0.5)
+                time.sleep(0.5)
                 draft_body = generate_draft(subject, sender, email["body"])
-                call_count += 1
 
                 gmail.create_draft(
                     to=sender,

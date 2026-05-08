@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import re as _re
 from datetime import date
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -58,19 +59,27 @@ def _build_credentials(inbox: str) -> Credentials:
 
 def _decode_body(payload: dict) -> str:
     """Extract plain-text body from a Gmail message payload."""
-    def _get_parts(p):
-        mime = p.get("mimeType", "")
-        if mime == "text/plain":
+    def _extract(p, target_mime):
+        if p.get("mimeType", "") == target_mime:
             data = p.get("body", {}).get("data", "")
             if data:
                 return base64.urlsafe_b64decode(data + "==").decode("utf-8", errors="replace")
         for part in p.get("parts", []):
-            result = _get_parts(part)
+            result = _extract(part, target_mime)
             if result:
                 return result
         return ""
 
-    return _get_parts(payload)
+    text = _extract(payload, "text/plain")
+    if text:
+        return text
+
+    html = _extract(payload, "text/html")
+    if html:
+        text = _re.sub(r"<[^>]+>", " ", html)
+        return _re.sub(r"\s+", " ", text).strip()
+
+    return ""
 
 
 def _header(headers: list, name: str) -> str:
